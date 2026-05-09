@@ -7,34 +7,68 @@
         "httpMethod": "POST",
         "responseMode": "responseNode"
       },
-      "id": "Webhook",
+      "id": "webhook",
       "name": "Webhook - Form Submit",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [200, 300]
+      "position": [200, 400]
     },
     {
       "parameters": {
-        "functionCode": "return [{ json: {\n  name: $json.body.name || '',\n  email: $json.body.email || '',\n  message: $json.body.message || '',\n  created_at: new Date().toISOString()\n}}];"
+        "functionCode": "const body = $json.body || {};\n\nconst tongTienThietHai = parseFloat(body.tongTienThietHai) || 0;\nconst tongTienKhieuNai = parseFloat(body.tongTienKhieuNai) || 0;\nconst phanTramKN = tongTienThietHai > 0\n  ? ((tongTienKhieuNai / tongTienThietHai) * 100).toFixed(1)\n  : '0';\n\nconst pad = n => String(n).padStart(4, '0');\nconst caseId = 'HL-' + pad(Math.floor(Math.random() * 9000) + 1000);\n\nreturn [{ json: {\n  caseId,\n  timestamp: new Date().toISOString(),\n  email:           body.email || '',\n  hoTen:           body.hoTen || '',\n  sdt:             body.sdt || '',\n  facebook:        body.facebook || '',\n  tinhThanh:       body.tinhThanh || '',\n  kenhLienLac:     body.kenhLienLac || '',\n  emailLienHe:     body.emailLienHe || '',\n  chiTietDonHang:  body.chiTietDonHang || '',\n  tongTienThietHai,\n  tongTienKhieuNai,\n  phanTramKN,\n  ngayGdDauTien:   body.ngayGdDauTien || '',\n  ngayGdCuoi:      body.ngayGdCuoi || '',\n  sanPhamChinh:    body.sanPhamChinh || '',\n  daLienHeShop:    body.daLienHeShop || '',\n  coHtmlMessenger: body.coHtmlMessenger || '',\n  ghiChuThem:      body.ghiChuThem || '',\n  moTaChuyenKhoan: body.moTaChuyenKhoan || '',\n  moTaTinNhan:     body.moTaTinNhan || '',\n  moTaSanPham:     body.moTaSanPham || '',\n  linkVideo:       body.linkVideo || '',\n  moTaVideo:       body.moTaVideo || '',\n  linkDriveFolder: body.linkDriveFolder || '',\n  driveFolderId:   body.driveFolderId || '',\n  soFileUpload:    parseInt(body.soFileUpload) || 0,\n  tinhTrangBC:     body.tinhTrangBC || ''\n}}];"
       },
-      "id": "Parse",
-      "name": "Parse Data",
+      "id": "parse",
+      "name": "Parse & Generate ID",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [400, 300]
+      "position": [440, 400]
     },
     {
       "parameters": {
         "operation": "append",
         "sheetId": "YOUR_SHEET_ID",
-        "range": "RAW_DATA!A:D",
-        "options": {}
+        "range": "RAW_DATA!A:AJ",
+        "options": { "valueInputOption": "USER_ENTERED" },
+        "dataMode": "define",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID":                                    "={{ $json.caseId }}",
+            "Timestamp":                             "={{ $json.timestamp }}",
+            "Email":                                 "={{ $json.email }}",
+            "Họ tên":                                "={{ $json.hoTen }}",
+            "SĐT Zalo":                              "={{ $json.sdt }}",
+            "Link Facebook":                         "={{ $json.facebook }}",
+            "Tỉnh/Thành":                            "={{ $json.tinhThanh }}",
+            "Kênh liên lạc ưu tiên":                "={{ $json.kenhLienLac }}",
+            "Email liên hệ":                         "={{ $json.emailLienHe }}",
+            "Chi tiết đơn hàng tổng (STK + lịch sử)":"={{ $json.chiTietDonHang }}",
+            "Tổng tiền thiệt hại (đã mua)":          "={{ $json.tongTienThietHai }}",
+            "Tổng tiền khiếu nại":                   "={{ $json.tongTienKhieuNai }}",
+            "% Khiếu nại/Tổng":                      "={{ $json.phanTramKN }}",
+            "Ngày giao dịch đầu tiên":               "={{ $json.ngayGdDauTien }}",
+            "Ngày giao dịch cuối cùng":              "={{ $json.ngayGdCuoi }}",
+            "Sản phẩm chính đã mua":                 "={{ $json.sanPhamChinh }}",
+            "Đã liên hệ shop?":                      "={{ $json.daLienHeShop }}",
+            "Có file HTML Messenger?":               "={{ $json.coHtmlMessenger }}",
+            "Ghi chú thêm":                          "={{ $json.ghiChuThem }}",
+            "Mô tả bằng chứng chuyển khoản":         "={{ $json.moTaChuyenKhoan }}",
+            "Mô tả bằng chứng tin nhắn":             "={{ $json.moTaTinNhan }}",
+            "Mô tả bằng chứng sản phẩm":             "={{ $json.moTaSanPham }}",
+            "Link video Google Drive":                "={{ $json.linkVideo }}",
+            "Mô tả nội dung video":                  "={{ $json.moTaVideo }}",
+            "Link Google Drive folder (nếu có)":     "={{ $json.linkDriveFolder }}",
+            "Drive folder uploads":                   "={{ $json.driveFolderId }}",
+            "Số file upload":                         "={{ $json.soFileUpload }}",
+            "Tình trạng BC tự đánh giá":             "={{ $json.tinhTrangBC }}"
+          }
+        }
       },
-      "id": "WriteRaw",
+      "id": "writeRaw",
       "name": "Ghi RAW_DATA",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [600, 300],
+      "position": [680, 400],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "YOUR_CREDENTIAL_ID",
@@ -44,26 +78,45 @@
     },
     {
       "parameters": {
-        "functionCode": "return items.map(item => {\n  item.json.analysis = 'Phân tích mẫu: ' + item.json.message;\n  return item;\n});"
+        "functionCode": "const d = $json;\nlet diem = 0;\nconst logs = [];\n\n// Chuyển khoản: 30đ\nif (d.moTaChuyenKhoan && d.moTaChuyenKhoan.length > 10) {\n  diem += 30; logs.push('✅ CK đầy đủ: +30');\n} else { logs.push('❌ Thiếu mô tả chuyển khoản: 0'); }\n\n// File HTML Messenger: 25đ\nif (d.coHtmlMessenger && d.coHtmlMessenger.includes('Có')) {\n  diem += 25; logs.push('✅ Có HTML Messenger: +25');\n} else { logs.push('⚠️ Không có HTML Messenger: 0'); }\n\n// Ảnh sản phẩm: 20đ\nif (d.moTaSanPham && d.moTaSanPham.length > 10) {\n  diem += 20; logs.push('✅ Có ảnh sản phẩm: +20');\n} else { logs.push('❌ Thiếu ảnh sản phẩm: 0'); }\n\n// File upload: 10đ\nif (d.soFileUpload >= 3) {\n  diem += 10; logs.push('✅ Upload ≥3 file: +10');\n} else if (d.soFileUpload >= 1) {\n  diem += 5; logs.push('⚠️ Upload ít file: +5');\n} else { logs.push('❌ Không upload file: 0'); }\n\n// Drive folder: 10đ\nif (d.linkDriveFolder && d.linkDriveFolder.startsWith('http')) {\n  diem += 10; logs.push('✅ Có Drive link: +10');\n} else { logs.push('❌ Không có Drive link: 0'); }\n\n// Ngày GD: 5đ\nif (d.ngayGdDauTien && d.ngayGdCuoi) {\n  diem += 5; logs.push('✅ Có ngày GD: +5');\n}\n\n// Xếp loại\nlet xepLoai;\nif (diem >= 70 && d.coHtmlMessenger && d.coHtmlMessenger.includes('Có')) {\n  xepLoai = 'A';\n} else if (diem >= 50) {\n  xepLoai = 'B';\n} else if (diem >= 30) {\n  xepLoai = 'C';\n} else {\n  xepLoai = 'X';\n}\n\n// Cảnh báo\nconst canhBao = [];\nif (parseFloat(d.phanTramKN) > 100) canhBao.push('Tiền KN > Tổng tiền mua');\nif (d.tinhTrangBC && d.tinhTrangBC.includes('Đầy đủ') && d.soFileUpload < 3) {\n  canhBao.push('Tự khai đầy đủ nhưng upload ít file');\n}\nif (d.tongTienKhieuNai > 50000000) canhBao.push('Số tiền lớn >50tr');\n\nconst canReview = canhBao.length > 0 || xepLoai === 'X';\nconst tomTat = `${d.hoTen||'N/A'} | ${d.tinhThanh||''} | ${Number(d.tongTienKhieuNai||0).toLocaleString('vi-VN')}đ | Nhóm ${xepLoai}`;\n\nreturn [{ json: {\n  ...d,\n  diemBC: diem,\n  xepLoai,\n  chiTietPhanTich: logs.join('\\n'),\n  canhBao: canhBao.length > 0 ? '⚠️ ' + canhBao.join(' | ') : '—',\n  canReviewThuCong: canReview ? 'TRUE' : 'FALSE',\n  tomTat,\n  diemUuTien: diem\n}}];"
       },
-      "id": "AI",
-      "name": "AI Analysis (Mock)",
+      "id": "aiScore",
+      "name": "AI Scoring & Phân Loại",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [800, 300]
+      "position": [920, 400]
     },
     {
       "parameters": {
         "operation": "append",
         "sheetId": "YOUR_SHEET_ID",
-        "range": "AI_ANALYSIS!A:E",
-        "options": {}
+        "range": "AI_ANALYSIS!A:P",
+        "options": { "valueInputOption": "USER_ENTERED" },
+        "dataMode": "define",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID":                          "={{ $json.caseId }}",
+            "Timestamp":                   "={{ $json.timestamp }}",
+            "Điểm xác thực BC (0-100)":    "={{ $json.diemBC }}",
+            "Xếp loại tự động":            "={{ $json.xepLoai }}",
+            "Chi tiết phân tích từng BC":  "={{ $json.chiTietPhanTich }}",
+            "Cảnh báo nghi vấn":           "={{ $json.canhBao }}",
+            "Cần review thủ công?":        "={{ $json.canReviewThuCong }}",
+            "STK trích từ HTML/file":      "—",
+            "Tên shop trích xuất":         "—",
+            "Ngày GD trích xuất":          "—",
+            "Sản phẩm chính":              "={{ $json.sanPhamChinh }}",
+            "Tóm tắt 1 dòng":             "={{ $json.tomTat }}",
+            "Điểm ưu tiên xử lý (0-100)": "={{ $json.diemUuTien }}"
+          }
+        }
       },
-      "id": "WriteAI",
+      "id": "writeAI",
       "name": "Ghi AI_ANALYSIS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [1000, 300],
+      "position": [1160, 200],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "YOUR_CREDENTIAL_ID",
@@ -73,41 +126,72 @@
     },
     {
       "parameters": {
-        "responseBody": "{ \"status\": \"success\" }",
+        "operation": "append",
+        "sheetId": "YOUR_SHEET_ID",
+        "range": "REVIEW!A:M",
+        "options": { "valueInputOption": "USER_ENTERED" },
+        "dataMode": "define",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID":               "={{ $json.caseId }}",
+            "Họ tên":           "={{ $json.hoTen }}",
+            "SĐT Zalo":         "={{ $json.sdt }}",
+            "Tỉnh/Thành":       "={{ $json.tinhThanh }}",
+            "Xếp loại AI":      "={{ $json.xepLoai }}",
+            "Điểm BC":          "={{ $json.diemBC }}",
+            "Trạng thái review":"Chờ review",
+            "Kết quả review":   "",
+            "Ghi chú nội bộ":   "={{ $json.canhBao !== '—' ? $json.canhBao : '' }}",
+            "Người review":     "",
+            "Ngày review":      "",
+            "Link Notion":      "",
+            "Link ClickUp task": ""
+          }
+        }
+      },
+      "id": "writeReview",
+      "name": "Ghi REVIEW",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1160, 500],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "responseBody": "{\"status\": \"success\", \"caseId\": \"={{ $('Parse & Generate ID').item.json.caseId }}\"}",
         "responseCode": 200
       },
-      "id": "Response",
+      "id": "response",
       "name": "Response - Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1200, 300]
+      "position": [1400, 350]
     }
   ],
   "connections": {
     "Webhook - Form Submit": {
-      "main": [
-        [{ "node": "Parse Data", "type": "main", "index": 0 }]
-      ]
+      "main": [[{ "node": "Parse & Generate ID", "type": "main", "index": 0 }]]
     },
-    "Parse Data": {
-      "main": [
-        [{ "node": "Ghi RAW_DATA", "type": "main", "index": 0 }]
-      ]
+    "Parse & Generate ID": {
+      "main": [[{ "node": "Ghi RAW_DATA", "type": "main", "index": 0 }]]
     },
     "Ghi RAW_DATA": {
-      "main": [
-        [{ "node": "AI Analysis (Mock)", "type": "main", "index": 0 }]
-      ]
+      "main": [[{ "node": "AI Scoring & Phân Loại", "type": "main", "index": 0 }]]
     },
-    "AI Analysis (Mock)": {
-      "main": [
-        [{ "node": "Ghi AI_ANALYSIS", "type": "main", "index": 0 }]
-      ]
+    "AI Scoring & Phân Loại": {
+      "main": [[
+        { "node": "Ghi AI_ANALYSIS", "type": "main", "index": 0 },
+        { "node": "Ghi REVIEW",      "type": "main", "index": 0 }
+      ]]
     },
     "Ghi AI_ANALYSIS": {
-      "main": [
-        [{ "node": "Response - Success", "type": "main", "index": 0 }]
-      ]
+      "main": [[{ "node": "Response - Success", "type": "main", "index": 0 }]]
     }
   },
   "active": true
